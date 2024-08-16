@@ -9,6 +9,7 @@
 <body>
   <div id="app">
     <h1>Supply App</h1>
+    {{ logs }}
     {{ userUnsafe }}
     <div v-if="user">
         <img :src="user.avatar_url" alt="avatar" />
@@ -23,10 +24,13 @@
         setup() {
             const user = ref(null);
             const userUnsafe = ref(null)
+            const logs = ref([])
 
             const verifyTelegramAuth = () => {
                 return new Promise((resolve) => {
                     const initDataUnsafe = window.Telegram.WebApp.initDataUnsafe;
+                    logs.value.push('dataunsafe')
+                    logs.value.push(initDataUnsafe)
                     const telegramData = {
                         id: initDataUnsafe.user.id,
                         first_name: initDataUnsafe.user.first_name,
@@ -43,8 +47,10 @@
             onMounted(async () => {
                 try {
                     window.Telegram.WebApp.ready();
+                    logs.value.push('webapp')
+                    logs.value.push(window.Telegram.WebApp)
                     const telegramData = await verifyTelegramAuth();
-                    const response = await fetch('http://YOUR_NGROK_URL/login', {
+                    const response = await fetch('http://localhost:8089/login', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json'
@@ -57,13 +63,16 @@
                     const data = await response.json();
                     user.value = data;
                 } catch (error) {
+                    logs.value.push('error')
+                    logs.value.push(error)
                     console.error(error);
                 }
             });
 
             return {
                 user,
-                userUnsafe
+                userUnsafe,
+                logs
             }
         }
     }).mount('#app');
