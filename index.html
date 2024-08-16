@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NB</title>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+</head>
+<body>
+  <div id="app">
+    <h1>Supply App</h1>
+    {{ userUnsafe }}
+    <div v-if="user">
+        <img :src="user.avatar_url" alt="avatar" />
+        <h1>{{ user.name }}</h1>
+    </div>
+  </div>
+
+  <script>
+    const { createApp, ref, onMounted } = Vue;
+
+    createApp({
+        setup() {
+            const user = ref(null);
+            const userUnsafe = ref(null)
+
+            const verifyTelegramAuth = () => {
+                return new Promise((resolve) => {
+                    const initDataUnsafe = window.Telegram.WebApp.initDataUnsafe;
+                    const telegramData = {
+                        id: initDataUnsafe.user.id,
+                        first_name: initDataUnsafe.user.first_name,
+                        last_name: initDataUnsafe.user.last_name,
+                        photo_url: initDataUnsafe.user.photo_url,
+                        auth_date: initDataUnsafe.auth_date,
+                        hash: initDataUnsafe.hash,
+                    };
+                    userUnsafe.value = {...telegramData}
+                    resolve(telegramData);
+                });
+            };
+
+            onMounted(async () => {
+                try {
+                    window.Telegram.WebApp.ready();
+                    const telegramData = await verifyTelegramAuth();
+                    const response = await fetch('http://YOUR_NGROK_URL/login', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(telegramData)
+                    });
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    const data = await response.json();
+                    user.value = data;
+                } catch (error) {
+                    console.error(error);
+                }
+            });
+
+            return {
+                user,
+                userUnsafe
+            }
+        }
+    }).mount('#app');
+  </script>
+
+    <style>
+      #app {
+          text-align: center;
+          margin-top: 50px;
+      }
+      img {
+          border-radius: 50%;
+          width: 150px;
+          height: 150px;
+      }
+    </style>
+</body>
+</html>
