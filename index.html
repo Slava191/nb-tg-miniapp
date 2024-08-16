@@ -10,6 +10,7 @@
 <body>
   <div id="app">
     <h1>Supply App</h1>
+    <h4>Logs:</h4>
     {{ logs }}
     <!-- {{ userUnsafe }}
     <div v-if="user">
@@ -32,9 +33,6 @@
 
                 logs.value.push('initDataUnsafe')
                 logs.value.push(window.Telegram.WebApp.initDataUnsafe)
-
-                logs.value.push('initData')
-                logs.value.push(window.Telegram.WebApp.initData)
 
             })
 
@@ -101,13 +99,14 @@
 
     <style>
       #app {
-          text-align: center;
-          margin-top: 50px;
+        color: white;
+        text-align: center;
+        margin-top: 50px;
       }
       img {
-          border-radius: 50%;
-          width: 150px;
-          height: 150px;
+        border-radius: 50%;
+        width: 150px;
+        height: 150px;
       }
     </style>
 </body>
