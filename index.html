@@ -35,6 +35,7 @@
                     logs.value.push('webapp ready')
 
                     const initDataUnsafe = window.Telegram.WebApp.initDataUnsafe;
+                    const initData = window.Telegram.WebApp.initData;
 
                     logs.value.push('initDataUnsafe')
                     
@@ -43,7 +44,7 @@
                         headers: {
                             'Content-Type': 'application/json'
                         },
-                        body: JSON.stringify(initDataUnsafe)
+                        body: JSON.stringify({ initData: initData })
                     });
 
                     if (!response.ok) {
