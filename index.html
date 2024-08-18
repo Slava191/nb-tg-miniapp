@@ -65,7 +65,7 @@
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'X-Init-Data': encodeURIComponent(initData)
+                'X-Init-Data': decodeURIComponent(initData)
             }
         });
 
