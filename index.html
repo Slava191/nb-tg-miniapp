@@ -42,7 +42,8 @@
                     const response = await fetch('https://766b-18-194-61-91.ngrok-free.app/login', {
                         method: 'POST',
                         headers: {
-                            'Content-Type': 'application/json'
+                            'Content-Type': 'application/json',
+                            'X-Init-Data': initData
                         },
                         body: JSON.stringify({ initData: initData })
                     });
