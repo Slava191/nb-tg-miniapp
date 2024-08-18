@@ -24,7 +24,7 @@
       <section class="daily-reward">
           <h2>Ежедневная награда</h2>
           <p>Повышайте уровень, чтобы увеличить ежедневную награду.</p>
-          <button class="reward-button">Забрать 0.01 NRC</button>
+          <button class="reward-button" @click="claimDailyReward()">Забрать 0.01 NRC</button>
       </section>
 
       <!-- <section class="tasks">
@@ -60,8 +60,26 @@
 
     const API_URL = 'https://766b-18-194-61-91.ngrok-free.app'
 
-    const getAuthUserData = async (initData) => {
+    const API_getAuthUserData = async (initData) => {
         const response = await fetch(`${API_URL}/get_auth_user_data`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Init-Data': initData
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+
+        const data = await response.json();
+
+        return data;
+    }
+
+    const API_claimDailyReward = async (initData) => {
+      const response = await fetch(`${API_URL}/claim_daily_reward`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -80,22 +98,27 @@
 
     createApp({
         setup() {
+            let initData = ''
             const user = ref(null);
             const logs = ref([])
+
+            const setUserData = async () => {
+              const userData = await API_getAuthUserData(initData)
+              user.value = { ...userData };
+            }
+
+            const claimDailyReward = async () => {
+              await API_claimDailyReward(initData)
+              await setUserData(setUserData)
+            }
 
             onMounted(async () => {
                 try {
                     await window.Telegram.WebApp.ready();
 
-                    logs.value.push('webapp ready')
+                    initData = window.Telegram.WebApp.initData;
 
-                    const initData = window.Telegram.WebApp.initData;
-
-                    logs.value.push('initData')
-
-                    const userData = await getAuthUserData(initData)
-
-                    user.value = userData;
+                    await setUserData(initData)
                 } catch (error) {
                     logs.value.push('error')
                     logs.value.push(error)
@@ -104,6 +127,7 @@
 
             return {
                 user,
+                claimDailyReward,
                 logs
             }
         }
