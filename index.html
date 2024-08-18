@@ -15,7 +15,7 @@
           <div class="user-info">
               <div class="username">{{ user.name }}</div>
               <div class="user-stats">
-                  <span class="level">LVL ..</span>
+                  <span class="level">LVL 1</span>
                   <span class="nrc">{{ user.nrc }} NRC</span>
               </div>
           </div>
@@ -111,10 +111,17 @@
   </script>
 
   <style>
+    :root {
+        --light-blue: #30A6C2;
+        --rose: #EE247A;
+        --bg-black: #101217;
+        --card-bg-black: #1A1E24;
+    }
+
     body {
         margin: 0;
         font-family: Arial, sans-serif;
-        background-color: #101217;
+        background-color: var(--bg-black);
         color: white;
     }
 
@@ -157,15 +164,15 @@
     }
 
     .level {
-        color: #30A6C2;
+        color: var(--light-blue);
     }
 
     .nrc {
-        color: #EE247A;
+        color: var(--rose);
     }
 
     .daily-reward, .tasks {
-        background-color: #1A1E24;
+        background-color: var(--card-bg-black);
         padding: 15px;
         border-radius: 10px;
         margin-bottom: 20px;
@@ -174,7 +181,7 @@
     .reward-button, .task-button {
         width: 100%;
         padding: 10px;
-        background-color: #30A6C2;
+        background-color: var(--light-blue);
         color: white;
         border: none;
         border-radius: 5px;
@@ -183,7 +190,7 @@
     }
 
     .task-item {
-        background-color: #1A1E24;
+        background-color: var(--card-bg-black);
         padding: 5px 15px 15px 15px;
         border-radius: 10px;
         margin-top: 10px;
@@ -198,14 +205,14 @@
     .nav {
         display: flex;
         justify-content: space-around;
-        background-color: #1A1E24;
+        background-color: var(--card-bg-black);
         padding: 10px;
         border-radius: 10px;
         margin-top: 20px;
     }
 
     .nav-item {
-        color: #FFFFFF;
+        color: white;
         text-decoration: none;
         font-size: 14px;
     }
@@ -216,6 +223,12 @@
 
     h2 {
       margin-top: 10px;
+    }
+
+    .logs {
+      text-align: center;
+      color: var(--rose);
+      font-size: 9pt;
     }
   </style>
 </body>
