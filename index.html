@@ -9,8 +9,8 @@
 </head>
 <body>
   <div id="app">
-    <div class="container">
-      <header v-if="user" class="header">
+    <div class="container" v-if="user">
+      <header class="header">
           <img :src="user.avatar_url || './avatar.png'" class="avatar">
           <div class="user-info">
               <div class="username">{{ user.name }}</div>
