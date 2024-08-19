@@ -15,7 +15,7 @@
           <div class="user-info">
               <div class="username">{{ user.name }}</div>
               <div class="user-stats">
-                  <span class="level">LVL 1</span>
+                  <span class="level">LVL {{ user.lvl }}</span>
                   <span class="nrc">{{ user.nrc }} NRC</span>
               </div>
           </div>
@@ -24,7 +24,10 @@
       <section class="daily-reward">
           <h2>Ежедневная награда</h2>
           <p>Повышайте уровень, чтобы увеличить ежедневную награду.</p>
-          <button class="reward-button" @click="claimDailyReward()">Забрать 0.01 NRC</button>
+          <button class="reward-button" :disabled="!canClaimDailyReward" @click="claimDailyReward()">
+            Забрать {{ 0.01 * user.lvl }} NRC
+          </button>
+          <p v-if="!canClaimDailyReward">Следующая награда завтра.</p>
       </section>
 
       <!-- <section class="tasks">
@@ -56,7 +59,7 @@
   </div>
 
   <script>
-    const { createApp, ref, onMounted } = Vue;
+    const { createApp, ref, onMounted, computed } = Vue;
 
     const API_URL = 'https://766b-18-194-61-91.ngrok-free.app'
 
@@ -106,6 +109,32 @@
               const userData = await API_getAuthUserData(initData)
               user.value = { ...userData };
             }
+
+            const canClaimDailyReward = computed(() => {
+              if (!this.user.last_daily_reward_claim_date) {
+                return true;
+              }
+
+              const lastClaimDate = new Date(this.user.last_daily_reward_claim_date);
+              const now = new Date();
+
+              // Приводим обе даты к UTC для точного сравнения
+              const lastClaimDateUTC = new Date(Date.UTC(
+                lastClaimDate.getUTCFullYear(),
+                lastClaimDate.getUTCMonth(),
+                lastClaimDate.getUTCDate(),
+                0, 0, 0
+              ));
+              
+              const nowUTC = new Date(Date.UTC(
+                now.getUTCFullYear(),
+                now.getUTCMonth(),
+                now.getUTCDate(),
+                0, 0, 0
+              ));
+
+              return nowUTC > lastClaimDateUTC;
+            })
 
             const claimDailyReward = async () => {
               await API_claimDailyReward(initData)
@@ -211,6 +240,10 @@
         border-radius: 5px;
         font-size: 16px;
         cursor: pointer;
+    }
+
+    reward-button:disabled {
+      opacity: 0.4;
     }
 
     .task-item {
