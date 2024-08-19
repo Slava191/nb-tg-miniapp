@@ -111,29 +111,29 @@
             }
 
             const canClaimDailyReward = computed(() => {
-              if (!this.user.last_daily_reward_claim_date) {
-                return true;
-              }
+                if (!user.value.last_daily_reward_claim_date) {
+                    return true;
+                }
 
-              const lastClaimDate = new Date(this.user.last_daily_reward_claim_date);
-              const now = new Date();
+                const lastClaimDate = new Date(user.value.last_daily_reward_claim_date);
+                const now = new Date();
 
-              // Приводим обе даты к UTC для точного сравнения
-              const lastClaimDateUTC = new Date(Date.UTC(
-                lastClaimDate.getUTCFullYear(),
-                lastClaimDate.getUTCMonth(),
-                lastClaimDate.getUTCDate(),
-                0, 0, 0
-              ));
-              
-              const nowUTC = new Date(Date.UTC(
-                now.getUTCFullYear(),
-                now.getUTCMonth(),
-                now.getUTCDate(),
-                0, 0, 0
-              ));
+                // Приводим обе даты к UTC для точного сравнения
+                const lastClaimDateUTC = new Date(Date.UTC(
+                    lastClaimDate.getUTCFullYear(),
+                    lastClaimDate.getUTCMonth(),
+                    lastClaimDate.getUTCDate(),
+                    0, 0, 0
+                ));
+                
+                const nowUTC = new Date(Date.UTC(
+                    now.getUTCFullYear(),
+                    now.getUTCMonth(),
+                    now.getUTCDate(),
+                    0, 0, 0
+                ));
 
-              return nowUTC > lastClaimDateUTC;
+                return nowUTC > lastClaimDateUTC;
             })
 
             const claimDailyReward = async () => {
