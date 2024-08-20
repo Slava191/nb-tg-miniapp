@@ -129,7 +129,8 @@
 
             const getTaskList = async () => {
                 const res = await API_getTaskList(initData);
-                taskList.value = [...res]
+                const tasks = res.tasks
+                taskList.value = [...tasks]
             }
 
             const canClaimDailyReward = computed(() => {
