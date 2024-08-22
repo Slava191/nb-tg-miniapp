@@ -41,7 +41,14 @@
                 {{ task.reward_lvl && task.reward_nrc && ' и ' }}
                 {{ task.reward_nrc && `+ ${task.reward_nrc} NRC` }}
             </p>
-            <button class="task-button">Получить</button>
+            <p v-if="task.is_checked && !task.is_completed">
+                Прогресс: {{ task.current_progress_count && task.required_progress_count ? `${task.current_progress_count} / ${task.required_progress_count}` : `не выполнено`}}
+            </p>
+            <p v-if="task.is_completed">Награда получена</p>
+            
+            <button v-if="!task.is_completed" class="task-button" @click="checkTask(task.id)">
+                Получить
+            </button>
           </div>
       </section>
 
@@ -51,7 +58,7 @@
           <a href="#" class="nav-item">друзья</a>
       </nav> -->
     </div>
-    <div class="logs">
+    <div v-if="logs.length" class="logs">
         {{ logs }}
     </div>
   </div>
@@ -80,7 +87,7 @@
     }
 
     const API_claimDailyReward = async (initData) => {
-      const response = await fetch(`${API_URL}/claim_daily_reward`, {
+        const response = await fetch(`${API_URL}/claim_daily_reward`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -98,11 +105,32 @@
     }
 
     const API_getTaskList = async (initData) => {
-      const response = await fetch(`${API_URL}/get_task_list`, {
+        const response = await fetch(`${API_URL}/get_task_list`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'X-Init-Data': initData
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+
+        const data = await response.json();
+
+        return data;
+    }
+
+    const API_checkTask = async (initData, task_id) => {
+        const response = await fetch(`${API_URL}/check_task`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Init-Data': initData
+            },
+            data: {
+                task_id
             }
         });
 
@@ -131,6 +159,19 @@
                 const res = await API_getTaskList(initData);
                 const tasks = res.tasks
                 taskList.value = [...tasks]
+            }
+
+            const checkTask = async (task_id) => {
+                const res = await API_checkTask(initData, task_id)
+                const task = taskList.value.find(t => t.id === task_id)
+                if (res.success) {
+                    await setUserData(setUserData)
+                    task.is_completed = true
+                } else {
+                    task.current_progress_count = res.current_progress_count
+                    task.required_progress_count = res.required_progress_count
+                }
+                task.is_checked = true
             }
 
             const canClaimDailyReward = computed(() => {
@@ -183,6 +224,7 @@
                 canClaimDailyReward,
                 claimDailyReward,
                 taskList,
+                checkTask,
                 logs
             }
         }
