@@ -35,6 +35,7 @@
           <p>Выполняйте задания, чтобы повысить уровень или получить NRC.</p>
           <div v-for="task in taskList" class="task-item">
             <p>{{ task.title }}</p>
+            <p v-html="task.description"></p>
             <p>
                 Награда: 
                 {{ task.reward_lvl && `+ ${task.reward_lvl} lvl` }}  
