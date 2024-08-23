@@ -9,49 +9,72 @@
 </head>
 <body>
   <div id="app">
-    <div class="container" v-if="user">
-      <header class="header">
-          <img :src="user.avatar_url || './avatar.png'" class="avatar">
-          <div class="user-info">
-              <div class="username">{{ user.name }}</div>
-              <div class="user-stats">
-                  <span class="level">LVL {{ user.lvl }}</span>
-                  <span class="nrc">{{ user.nrc }} NRC</span>
-              </div>
-          </div>
-      </header>
-      
-      <section class="daily-reward">
-          <h2>Ежедневная награда</h2>
-          <p>Повышайте уровень, чтобы увеличить ежедневную награду.</p>
-          <button class="reward-button" :disabled="!canClaimDailyReward" @click="claimDailyReward()">
-            Забрать {{ 0.01 * user.lvl }} NRC
-          </button>
-          <p v-if="!canClaimDailyReward">Следующая награда завтра.</p>
-      </section>
+    <!-- <div class="container">
+        <button class="base-btn base-btn--loading">
+            <span class="base-btn__loader"></span>
+            Проверка...
+        </button>
+    </div>
+    <div class="container container--loading">
+        <div class="container__loader"></div>
+    </div> -->
+    <div class="container" :class="{'container--loading': isLoading}" v-if="user">
+        <div v-if="isLoading" class="container__loader"></div>
 
-      <section class="tasks">
-          <h2>Задания</h2>
-          <p>Выполняйте задания, чтобы повысить уровень или получить NRC.</p>
-          <div v-for="task in taskList" class="task-item">
-            <p>{{ task.title }}</p>
-            <p v-html="task.description"></p>
-            <p>
-                Награда: 
-                {{ task.reward_lvl && `+ ${task.reward_lvl} lvl` }}  
-                {{ task.reward_lvl && task.reward_nrc && ' и ' }}
-                {{ task.reward_nrc && `+ ${task.reward_nrc} NRC` }}
-            </p>
-            <p v-if="task.is_checked && !task.is_completed">
-                Прогресс: {{ task.current_progress_count && task.required_progress_count ? `${task.current_progress_count} / ${task.required_progress_count}` : `не выполнено`}}
-            </p>
-            <p v-if="task.is_completed">Награда получена</p>
-            
-            <button v-if="!task.is_completed" class="task-button" @click="checkTask(task.id)">
-                Получить
+        <header class="header">
+            <img :src="user.avatar_url || './avatar.png'" class="avatar">
+            <div class="user-info">
+                <div class="username">{{ user.name }}</div>
+                <div class="user-stats">
+                    <span class="level">LVL {{ user.lvl }}</span>
+                    <span class="nrc">{{ user.nrc }} NRC</span>
+                </div>
+            </div>
+        </header>
+      
+        <section class="daily-reward">
+            <h2>Ежедневная награда</h2>
+            <p>Повышайте уровень, чтобы увеличить ежедневную награду.</p>
+            <button 
+                class="base-btn" 
+                :class="{'base-btn--loading': isDailyRewardClaiming}"
+                :disabled="!canClaimDailyReward" 
+                @click="claimDailyReward()"
+            >
+                <span v-if="isDailyRewardClaiming" class="base-btn__loader"></span>
+                Забрать {{ 0.01 * user.lvl }} NRC
             </button>
-          </div>
-      </section>
+            <p v-if="!canClaimDailyReward">Следующая награда завтра.</p>
+        </section>
+
+        <section class="tasks">
+            <h2>Задания</h2>
+            <p>Выполняйте задания, чтобы повысить уровень или получить NRC.</p>
+            <div v-for="task in taskList" class="task-item">
+                <p>{{ task.title }}</p>
+                <p v-html="task.description"></p>
+                <p>
+                    Награда: 
+                    {{ task.reward_lvl && `+ ${task.reward_lvl} LVL` }}  
+                    {{ task.reward_lvl && task.reward_nrc && ' и ' }}
+                    {{ task.reward_nrc && `+ ${task.reward_nrc} NRC` }}
+                </p>
+                <p v-if="task.is_checked && !task.is_completed">
+                    Прогресс: {{ task.current_progress_count && task.required_progress_count ? `${task.current_progress_count} / ${task.required_progress_count}` : `не выполнено`}}
+                </p>
+                <p v-if="task.is_completed">Награда получена</p>
+                
+                <button 
+                    v-if="!task.is_completed" 
+                    class="base-btn" 
+                    :class="{'base-btn--loading': task.is_checking}"
+                    @click="checkTask(task.id)"
+                >
+                    <span v-if="task.is_checking" class="base-btn__loader"></span>
+                    Получить
+                </button>
+            </div>
+        </section>
 
       <!-- <nav class="nav">
           <a href="#" class="nav-item">главная</a>
@@ -144,6 +167,7 @@
 
     createApp({
         setup() {
+            const isLoading = ref(true)
             let initData = ''
             const user = ref(null);
             const taskList = ref([]);
@@ -161,8 +185,11 @@
             }
 
             const checkTask = async (task_id) => {
-                const res = await API_checkTask(initData, task_id)
                 const task = taskList.value.find(t => t.id === task_id)
+
+                task.is_checking = true
+
+                const res = await API_checkTask(initData, task_id)
                 if (res.success) {
                     await setUserData(setUserData)
                     task.is_completed = true
@@ -171,6 +198,8 @@
                     task.required_progress_count = res.required_progress_count
                 }
                 task.is_checked = true
+
+                task.is_checking = false
             }
 
             const canClaimDailyReward = computed(() => {
@@ -199,13 +228,18 @@
                 return nowUTC > lastClaimDateUTC;
             })
 
+            const isDailyRewardClaiming = ref(false)
             const claimDailyReward = async () => {
-              await API_claimDailyReward(initData)
-              await setUserData(setUserData)
+                isDailyRewardClaiming.value = true
+                if (!canClaimDailyReward.value) return;
+                await API_claimDailyReward(initData)
+                await setUserData(setUserData)
+                isDailyRewardClaiming.value = false
             }
 
             onMounted(async () => {
                 try {
+                    isLoading.value = true
                     await window.Telegram.WebApp.ready();
 
                     initData = window.Telegram.WebApp.initData;
@@ -215,12 +249,16 @@
                 } catch (error) {
                     logs.value.push('error')
                     logs.value.push(error)
+                } finally {
+                    isLoading.value = false
                 }
             })
 
             return {
+                isLoading,
                 user,
                 canClaimDailyReward,
+                isDailyRewardClaiming,
                 claimDailyReward,
                 taskList,
                 checkTask,
@@ -298,21 +336,6 @@
         margin-bottom: 20px;
     }
 
-    .reward-button, .task-button {
-        width: 100%;
-        padding: 10px;
-        background-color: var(--light-blue);
-        color: white;
-        border: none;
-        border-radius: 5px;
-        font-size: 16px;
-        cursor: pointer;
-    }
-
-    reward-button:disabled {
-      opacity: 0.4;
-    }
-
     .task-item {
         background-color: var(--card-bg-black);
         padding: 5px 15px 15px 15px;
@@ -353,6 +376,77 @@
       text-align: center;
       color: var(--rose);
       font-size: 9pt;
+    }
+
+    .base-btn {
+        width: 100%;
+        padding: 10px;
+        background-color: var(--light-blue);
+        color: white;
+        border: none;
+        border-radius: 5px;
+        font-size: 16px;
+        cursor: pointer;
+    }
+
+    .base-button:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    .base-btn--loading {
+        position: relative;
+        opacity: 0.9;
+        cursor: not-allowed;
+    }
+
+    /* Основной стиль лоадера */
+    .base-btn__loader {
+        position: absolute;
+        left: 10px;
+        top: 50%;
+        width: 18px;
+        height: 18px;
+        margin-top: -10px; /* Для горизонтального центрирования */
+        border: 2px solid transparent;
+        border-top-color: white;
+        border-radius: 50%;
+        animation: spin 1s linear infinite; /* Анимация вращения */
+    }
+
+    .container--loading {
+        min-height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .container__loader {
+        display: inline-block;
+        width: 80px;
+        height: 80px;
+    }
+
+    .container__loader:after {
+        content: " ";
+        display: block;
+        width: 64px;
+        height: 64px;
+        margin: 8px;
+        border-radius: 50%;
+        border: 6px solid white;
+        border-color: white transparent white transparent;
+        animation: spin 1.2s linear infinite;
+    }
+
+    /* Анимация вращения */
+    @keyframes spin {
+        from {
+            transform: rotate(0deg);
+        }
+        to {
+            transform: rotate(360deg);
+        }
     }
   </style>
 </body>
