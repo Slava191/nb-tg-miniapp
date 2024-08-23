@@ -18,9 +18,7 @@
     <div class="container container--loading">
         <div class="container__loader"></div>
     </div> -->
-    <div class="container" :class="{'container--loading': isLoading}" v-if="user">
-        <div v-if="isLoading" class="container__loader"></div>
-
+    <div v-if="!isLoading && user" class="container">
         <header class="header">
             <img :src="user.avatar_url || './avatar.png'" class="avatar">
             <div class="user-info">
@@ -82,6 +80,10 @@
           <a href="#" class="nav-item">друзья</a>
       </nav> -->
     </div>
+    <div v-else class="container container--loading">
+        <div class="container__loader"></div>
+    </div>
+    
     <div v-if="logs.length" class="logs">
         {{ logs }}
     </div>
@@ -200,6 +202,10 @@
                 task.is_checked = true
 
                 task.is_checking = false
+
+                if (window?.navigator?.vibrate) {
+                    window.navigator.vibrate(200);
+                } 
             }
 
             const canClaimDailyReward = computed(() => {
@@ -235,6 +241,10 @@
                 await API_claimDailyReward(initData)
                 await setUserData(setUserData)
                 isDailyRewardClaiming.value = false
+
+                if (window?.navigator?.vibrate) {
+                    window.navigator.vibrate(200);
+                } 
             }
 
             onMounted(async () => {
@@ -389,7 +399,7 @@
         cursor: pointer;
     }
 
-    .base-button:disabled {
+    .base-btn:disabled {
         opacity: 0.5;
         cursor: not-allowed;
     }
