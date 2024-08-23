@@ -203,9 +203,7 @@
 
                 task.is_checking = false
 
-                if (window?.navigator?.vibrate) {
-                    window.navigator.vibrate(200);
-                } 
+                window.Telegram.WebApp.HapticFeedback.impactOccurred('medium');
             }
 
             const canClaimDailyReward = computed(() => {
@@ -242,9 +240,7 @@
                 await setUserData(setUserData)
                 isDailyRewardClaiming.value = false
 
-                if (window?.navigator?.vibrate) {
-                    window.navigator.vibrate(200);
-                } 
+                window.Telegram.WebApp.HapticFeedback.impactOccurred('medium');
             }
 
             onMounted(async () => {
