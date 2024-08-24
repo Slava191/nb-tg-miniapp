@@ -63,10 +63,10 @@
                         {{ task.reward_nrc && `+ ${task.reward_nrc} NRC` }}
                     </span>
                 </p>
-                <p v-if="task.is_checked && !task.is_completed">
+                <p v-if="task.is_checked && !task.is_completed" class="task__progress">
                     Прогресс: {{ task.current_progress_count && task.required_progress_count ? `${task.current_progress_count} / ${task.required_progress_count}` : `не выполнено`}}
                 </p>
-                <p v-if="task.is_completed">Награда получена</p>
+                <p v-if="task.is_completed" class="task__completed">Награда получена</p>
                 
                 <button 
                     v-if="!task.is_completed" 
@@ -75,7 +75,7 @@
                     @click="checkTask(task.id)"
                 >
                     <span v-if="task.is_checking" class="base-btn__loader"></span>
-                    Получить
+                    Проверить
                 </button>
             </div>
         </section>
@@ -337,6 +337,7 @@
 
     .level, .nrc {
         margin-right: 10px;
+        font-weight: 600;
     }
 
     .level {
@@ -471,6 +472,17 @@
 
     .task__title {
         font-weight: 600;
+    }
+
+    .task__progress {
+        font-weight: 600;
+        text-align: center;
+    }
+
+    .task__completed {
+        font-weight: bold;
+        color: var(--light-blue);
+        border-bottom: solid 2px var(--light-blue);
     }
 
     /* Анимация вращения */
