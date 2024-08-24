@@ -189,13 +189,6 @@
               user.value = { ...userData };
             }
 
-            const getTaskList = async () => {
-                const res = await API_getTaskList(initData);
-                const tasks = res.tasks
-                taskList.value = [...tasks]
-                sortTaskList()
-            }
-
             const sortTaskList = () => {
                 taskList.value.sort((a, b) => {
                     if (a.is_completed === b.is_completed) {
@@ -206,6 +199,13 @@
                         return -1;
                     }
                 });
+            }
+
+            const getTaskList = async () => {
+                const res = await API_getTaskList(initData);
+                const tasks = res.tasks
+                taskList.value = [...tasks]
+                sortTaskList()
             }
 
             const checkTask = async (task_id) => {
