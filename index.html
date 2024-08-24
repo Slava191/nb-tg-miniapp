@@ -66,7 +66,9 @@
                 <p v-if="task.is_checked && !task.is_completed" class="task__progress">
                     Прогресс: {{ task.current_progress_count && task.required_progress_count ? `${task.current_progress_count} / ${task.required_progress_count}` : `не выполнено`}}
                 </p>
-                <p v-if="task.is_completed" class="task__completed">Награда получена</p>
+                <p v-if="task.is_completed">
+                    <span class="task__completed">Награда получена</span>
+                </p>
                 
                 <button 
                     v-if="!task.is_completed" 
