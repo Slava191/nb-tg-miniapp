@@ -40,22 +40,28 @@
                 @click="claimDailyReward()"
             >
                 <span v-if="isDailyRewardClaiming" class="base-btn__loader"></span>
-                Забрать {{ 0.01 * user.lvl }} NRC
+                Забрать {{ BASE_DAILY_REWARD_NRC * user.lvl }} NRC
             </button>
-            <p v-if="!canClaimDailyReward">Следующая награда завтра.</p>
+            <p v-if="!canClaimDailyReward" style="text-align: center;">
+                Следующая награда завтра.
+            </p>
         </section>
 
         <section class="tasks">
             <h2>Задания</h2>
             <p>Выполняйте задания, чтобы повысить уровень или получить NRC.</p>
             <div v-for="task in taskList" class="task-item">
-                <p>{{ task.title }}</p>
-                <p v-html="task.description"></p>
+                <p class="task__title">{{ task.title }}</p>
+                <p class="task__description" v-html="task.description"></p>
                 <p>
                     Награда: 
-                    {{ task.reward_lvl && `+ ${task.reward_lvl} LVL` }}  
+                    <span v-if="task.reward_lvl" class="reward reward--lvl">
+                        {{ `+ ${task.reward_lvl} LVL` }}
+                    </span> 
                     {{ task.reward_lvl && task.reward_nrc && ' и ' }}
-                    {{ task.reward_nrc && `+ ${task.reward_nrc} NRC` }}
+                    <span v-if="task.reward_lvl" class="reward reward--nrc">
+                        {{ task.reward_nrc && `+ ${task.reward_nrc} NRC` }}
+                    </span>
                 </p>
                 <p v-if="task.is_checked && !task.is_completed">
                     Прогресс: {{ task.current_progress_count && task.required_progress_count ? `${task.current_progress_count} / ${task.required_progress_count}` : `не выполнено`}}
@@ -93,6 +99,7 @@
     const { createApp, ref, onMounted, computed } = Vue;
 
     const API_URL = 'https://766b-18-194-61-91.ngrok-free.app'
+    const BASE_DAILY_REWARD_NRC = 0.001
 
     const API_getAuthUserData = async (initData) => {
         const response = await fetch(`${API_URL}/get_auth_user_data`, {
@@ -260,6 +267,7 @@
             })
 
             return {
+                BASE_DAILY_REWARD_NRC,
                 isLoading,
                 user,
                 canClaimDailyReward,
@@ -286,6 +294,11 @@
         font-family: Arial, sans-serif;
         background-color: var(--bg-black);
         color: white;
+    }
+
+    a {
+        font-weight: 600;
+        color: var(--rose);
     }
 
     .container {
@@ -442,6 +455,22 @@
         border: 6px solid white;
         border-color: white transparent white transparent;
         animation: spin 1.2s linear infinite;
+    }
+
+    .reward {
+        font-weight: 600;
+    }
+
+    .reward--lvl {
+        color: var(--light-blue);
+    }
+
+    .reward--nrc {
+        color: var(--rose);
+    }
+
+    .task__title {
+        font-weight: 600;
     }
 
     /* Анимация вращения */
