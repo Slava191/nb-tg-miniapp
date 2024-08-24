@@ -63,9 +63,6 @@
                         {{ task.reward_nrc && `+ ${task.reward_nrc} NRC` }}
                     </span>
                 </p>
-                <p v-if="task.is_checked && !task.is_completed" class="task__progress">
-                    Прогресс: {{ task.current_progress_count && task.required_progress_count ? `${task.current_progress_count} / ${task.required_progress_count}` : `не выполнено`}}
-                </p>
                 <p v-if="task.is_completed">
                     <span class="task__completed">Награда получена</span>
                 </p>
@@ -79,6 +76,9 @@
                     <span v-if="task.is_checking" class="base-btn__loader"></span>
                     Проверить
                 </button>
+                <p v-if="task.is_checked && !task.is_completed" class="task__progress">
+                    Прогресс: {{ task.current_progress_count && task.required_progress_count ? `${task.current_progress_count} / ${task.required_progress_count}` : `не выполнено`}}
+                </p>
             </div>
         </section>
 
@@ -193,6 +193,19 @@
                 const res = await API_getTaskList(initData);
                 const tasks = res.tasks
                 taskList.value = [...tasks]
+                sortTaskList()
+            }
+
+            const sortTaskList = () => {
+                taskList.value.sort((a, b) => {
+                    if (a.is_completed === b.is_completed) {
+                        return 0;
+                    } else if (a.is_completed) {
+                        return 1;
+                    } else {
+                        return -1;
+                    }
+                });
             }
 
             const checkTask = async (task_id) => {
