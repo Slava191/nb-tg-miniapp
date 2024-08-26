@@ -91,6 +91,17 @@
     <div v-else-if="isLoading" class="container container--loading">
         <div class="container__loader"></div>
     </div>
+    <div v-else-if="!isLoading && isError" class="container">
+        <div class="error-pictue__wrapper">
+            <img src="./not-working.png" class="error-pictue">
+        </div>
+        <div class="error-text">
+            Что-то не работает (
+        </div>
+        <div class="error-contact">
+            Пожалуйста, напишите нам <a href="https://t.me/neural_project_admin">@neural_project_admin</a>
+        </div>
+    </div>
     
     <div v-if="logs.length" class="logs">
         {{ logs }}
@@ -179,6 +190,7 @@
     createApp({
         setup() {
             const isLoading = ref(true)
+            const isError = ref(false)
             let initData = ''
             const user = ref(null);
             const taskList = ref([]);
@@ -274,6 +286,7 @@
                     await setUserData()
                     await getTaskList()
                 } catch (error) {
+                    isError.value = true
                     logs.value.push('error')
                     logs.value.push(error)
                 } finally {
@@ -284,6 +297,7 @@
             return {
                 BASE_DAILY_REWARD_NRC,
                 isLoading,
+                isError,
                 user,
                 canClaimDailyReward,
                 isDailyRewardClaiming,
@@ -503,6 +517,28 @@
     .command {
         font-weight: 600;
         color: var(--light-blue);
+    }
+
+    .error-pictue__wrapper {
+        text-align: center;
+        margin-top: 10px;
+    }
+
+    .error-pictue {
+        max-width: 360px;
+    }
+
+    .error-text {
+        text-align: center;
+        margin-top: 10px;
+        font-size: 14pt;
+        font-weight: 600;
+    }
+
+    .error-contact {
+        text-align: center;
+        font-size: 12pt;
+        margin-top: 10px;
     }
 
     /* Анимация вращения */
