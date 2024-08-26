@@ -92,14 +92,15 @@
         <div class="container__loader"></div>
     </div>
     <div v-else-if="!isLoading && isError" class="container">
-        <div class="error-pictue__wrapper">
-            <img src="./not-working.png" class="error-pictue">
+        <div class="error-picture__wrapper">
+            <img src="./not-working.png" class="error-picture">
         </div>
         <div class="error-text">
             Что-то не работает (
         </div>
         <div class="error-contact">
-            Пожалуйста, напишите нам <a href="https://t.me/neural_project_admin">@neural_project_admin</a>
+            Пожалуйста, напишите нам:<br/>
+            <a href="https://t.me/neural_project_admin">@neural_project_admin</a>
         </div>
     </div>
     
@@ -422,6 +423,7 @@
 
     .logs {
       text-align: center;
+      margin-top: 30px;
       color: var(--rose);
       font-size: 9pt;
     }
@@ -519,25 +521,25 @@
         color: var(--light-blue);
     }
 
-    .error-pictue__wrapper {
+    .error-picture__wrapper {
         text-align: center;
         margin-top: 10px;
     }
 
-    .error-pictue {
-        max-width: 360px;
+    .error-picture {
+        max-width: 320px;
     }
 
     .error-text {
         text-align: center;
         margin-top: 10px;
-        font-size: 14pt;
+        font-size: 18pt;
         font-weight: 600;
     }
 
     .error-contact {
         text-align: center;
-        font-size: 12pt;
+        font-size: 14pt;
         margin-top: 10px;
     }
 
