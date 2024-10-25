@@ -10,13 +10,51 @@
 <body>
   <div id="app">
     <!-- <div class="container">
-        <button class="base-btn base-btn--loading">
-            <span class="base-btn__loader"></span>
-            Проверка...
-        </button>
-    </div>
-    <div class="container container--loading">
-        <div class="container__loader"></div>
+        <header class="header">
+            <img :src="'./avatar.png'" class="avatar">
+            <div class="user-info">
+                <div class="username">Slava191</div>
+                <div class="user-stats">
+                    <span class="level">LVL 4</span>
+                    <span class="nrc">0.0045 NRC</span>
+                </div>
+            </div>
+        </header>
+      
+        <section class="daily-reward">
+            <h2>Ежедневная награда</h2>
+            <p>Повышайте уровень, чтобы увеличить ежедневную награду.</p>
+            <button 
+                class="base-btn daily-reward__btn" 
+            >
+                Забрать 0.001 NRC
+            </button>
+        </section>
+
+        <section class="tasks">
+            <h2>Задания</h2>
+            <p>Выполняйте задания, чтобы повысить уровень или получить NRC.</p>
+            <div class="task-item">
+                <p class="task__title">Сделать 10 запросов в режиме ChatGPT4o</p>
+                <p class="task__description">Оцените мощь этой нейросети в нашем НейроБоте. Вызовите команду <span class="command">/gpt4</span>, чтобы перейти в режим ChatGPT4o</p>
+                <p>
+                    Награда: 
+                    <span class="reward reward--lvl">
+                        + 1 LVL
+                    </span> 
+                     и 
+                    <span class="reward reward--nrc">
+                        + 1 NRC
+                    </span>
+                </p>
+                
+                <button 
+                    class="base-btn" 
+                >
+                    Проверить
+                </button>
+            </div>
+        </section>
     </div> -->
     <div v-if="!isLoading && user" class="container">
         <header class="header">
@@ -317,6 +355,7 @@
         --rose: #EE247A;
         --bg-black: #101217;
         --card-bg-black: #1A1E24;
+        --desc-color: #91a8ad;
     }
 
     body {
@@ -324,6 +363,7 @@
         font-family: Arial, sans-serif;
         background-color: var(--bg-black);
         color: white;
+        text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7);
     }
 
     a {
@@ -368,6 +408,7 @@
     .level, .nrc {
         margin-right: 10px;
         font-weight: 600;
+        font-size: 14pt;
     }
 
     .level {
@@ -503,6 +544,13 @@
 
     .task__title {
         font-weight: 600;
+        font-size: 13pt;
+    }
+
+    .task__description {
+        color: var(--desc-color);
+        font-weight: 520;
+        font-size: 12pt;
     }
 
     .task__progress {
