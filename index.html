@@ -9,61 +9,14 @@
 </head>
 <body>
   <div id="app">
-    <!-- <div class="container">
-        <header class="header">
-            <img :src="'./avatar.png'" class="avatar">
-            <div class="user-info">
-                <div class="username">Slava191</div>
-                <div class="user-stats">
-                    <span class="level">LVL 4</span>
-                    <span class="nrc">0.0045 NRC</span>
-                </div>
-            </div>
-        </header>
-      
-        <section class="daily-reward">
-            <h2>Ежедневная награда</h2>
-            <p>Повышайте уровень, чтобы увеличить ежедневную награду.</p>
-            <button 
-                class="base-btn daily-reward__btn" 
-            >
-                Забрать 0.001 NRC
-            </button>
-        </section>
-
-        <section class="tasks">
-            <h2>Задания</h2>
-            <p>Выполняйте задания, чтобы повысить уровень или получить NRC.</p>
-            <div class="task-item">
-                <p class="task__title">Сделать 10 запросов в режиме ChatGPT4o</p>
-                <p class="task__description">Оцените мощь этой нейросети в нашем НейроБоте. Вызовите команду <span class="command">/gpt4</span>, чтобы перейти в режим ChatGPT4o</p>
-                <p>
-                    Награда: 
-                    <span class="reward reward--lvl">
-                        + 1 LVL
-                    </span> 
-                     и 
-                    <span class="reward reward--nrc">
-                        + 1 NRC
-                    </span>
-                </p>
-                
-                <button 
-                    class="base-btn" 
-                >
-                    Проверить
-                </button>
-            </div>
-        </section>
-    </div> -->
     <div v-if="!isLoading && user" class="container">
         <header class="header">
-            <img :src="user.avatar_url || './avatar.png'" class="avatar">
+            <!-- <img :src="user.avatar_url || './avatar.png'" class="avatar"> -->
             <div class="user-info">
                 <div class="username">{{ user.name }}</div>
                 <div class="user-stats">
                     <span class="level">LVL {{ user.lvl }}</span>
-                    <span class="nrc">{{ user.nrc }} NRC</span>
+                    <span class="nrc">{{ (user.nrc*1).toFixed(3) }} NRC</span>
                 </div>
             </div>
         </header>
@@ -78,7 +31,7 @@
                 @click="claimDailyReward()"
             >
                 <span v-if="isDailyRewardClaiming" class="base-btn__loader"></span>
-                Забрать {{ BASE_DAILY_REWARD_NRC * user.lvl }} NRC
+                Забрать {{ (BASE_DAILY_REWARD_NRC * user.lvl).toFixed(3) }} NRC
             </button>
             <p v-if="!canClaimDailyReward" style="text-align: center;">
                 Следующая награда завтра.
@@ -88,6 +41,22 @@
         <section class="tasks">
             <h2>Задания</h2>
             <p>Выполняйте задания, чтобы повысить уровень или получить NRC.</p>
+            <div class="tasks-selector">
+                <div 
+                    class="tasks-selector__item" 
+                    :class="{'tasks-selector__item--active': selectedTaskType === 'neurobot'}"
+                    @click="getTaskList('neurobot')"
+                >
+                    НейроБот
+                </div>
+                <div 
+                    class="tasks-selector__item" 
+                    :class="{'tasks-selector__item--active': selectedTaskType === 'partner'}"
+                    @click="getTaskList('partner')"
+                >
+                    Партнеры
+                </div>
+            </div>
             <div v-for="task in taskList" class="task-item">
                 <p class="task__title">{{ task.title }}</p>
                 <p class="task__description" v-html="task.description"></p>
@@ -97,7 +66,7 @@
                         {{ `+ ${task.reward_lvl} LVL` }}
                     </span> 
                     {{ task.reward_lvl && task.reward_nrc && ' и ' }}
-                    <span v-if="task.reward_lvl" class="reward reward--nrc">
+                    <span v-if="task.reward_nrc" class="reward reward--nrc">
                         {{ task.reward_nrc && `+ ${task.reward_nrc} NRC` }}
                     </span>
                 </p>
@@ -105,18 +74,38 @@
                     <span class="task__completed">Награда получена</span>
                 </p>
                 
-                <button 
-                    v-if="!task.is_completed" 
-                    class="base-btn" 
-                    :class="{'base-btn--loading': task.is_checking}"
-                    @click="checkTask(task.id)"
-                >
-                    <span v-if="task.is_checking" class="base-btn__loader"></span>
-                    Проверить
-                </button>
-                <p v-if="task.is_checked && !task.is_completed" class="task__progress">
-                    Прогресс: {{ task.current_progress_count && task.required_progress_count ? `${task.current_progress_count} / ${task.required_progress_count}` : `не выполнено`}}
-                </p>
+                <template v-if="task.task_check_method === 'manual'">
+                    <button 
+                        v-if="!task.has_progress || (!task.is_completed && ((task.is_manual_checked && !task.is_manual_approved) || (!task.is_manual_checked && task.is_manual_approved)))" 
+                        class="base-btn" 
+                        :class="{'base-btn--loading': task.is_checking}"
+                        @click="sendTaskToManualCheck(task.id)"
+                    >
+                        <span v-if="task.is_checking" class="base-btn__loader"></span>
+                        Отправить на проверку
+                    </button>
+                    <p v-if="task.has_progress && !task.is_completed && !task.is_manual_checked && !task.is_manual_approved" class="task__progress">
+                        Задание находится на ручной проверке. Мы проверим его в течение 72 часов, но скорее всего гораздо быстрее.
+                    </p>
+                    <p v-if="task.has_progress && !task.is_completed && task.is_manual_checked && !task.is_manual_approved" class="task__progress">
+                        Задание не зачтено. Исправьте недочеты и отправьте на повторную проверку.
+                        <template v-if="task.comment"><br/><br/><u>Комментарий:</u> {{ task.comment }}</template>
+                    </p>
+                </template>
+                <template v-else>
+                    <button 
+                        v-if="!task.is_completed" 
+                        class="base-btn" 
+                        :class="{'base-btn--loading': task.is_checking}"
+                        @click="checkTask(task.id)"
+                    >
+                        <span v-if="task.is_checking" class="base-btn__loader"></span>
+                        Проверить
+                    </button>
+                    <p v-if="task.is_checked && !task.is_completed" class="task__progress">
+                        Прогресс: {{ task.current_progress_count && task.required_progress_count ? `${task.current_progress_count} / ${task.required_progress_count}` : `не выполнено`}}
+                    </p>
+                </template>
             </div>
         </section>
 
@@ -150,7 +139,7 @@
   <script>
     const { createApp, ref, onMounted, computed } = Vue;
 
-    const API_URL = 'https://9078-109-252-99-115.ngrok-free.app'
+    const API_URL = 'http://localhost:8089'
     const BASE_DAILY_REWARD_NRC = 0.001
 
     const API_getAuthUserData = async (initData) => {
@@ -226,6 +215,25 @@
         return data;
     }
 
+    const API_sendToManualCheck = async (initData, task_id) => {
+        const response = await fetch(`${API_URL}/send_to_manual_check`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Init-Data': initData
+            },
+            body: JSON.stringify({ task_id })
+        });
+
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+
+        const data = await response.json();
+
+        return data;
+    }
+
     createApp({
         setup() {
             const isLoading = ref(true)
@@ -234,6 +242,7 @@
             const user = ref(null);
             const taskList = ref([]);
             const logs = ref([]);
+            const selectedTaskType = ref('neurobot');
 
             const setUserData = async () => {
               const userData = await API_getAuthUserData(initData);
@@ -252,11 +261,24 @@
                 });
             }
 
-            const getTaskList = async () => {
+            const filterTasks = (type) => {
+                if (!type) return;
+
+                selectedTaskType.value = type;
+
+                if (type === 'neurobot') {
+                    taskList.value = taskList.value.filter((task) => ['buy', 'common', 'tg-channel-subscription'].includes(task.task_type));
+                } else if (type === 'partner') {
+                    taskList.value = taskList.value.filter((task) => ['game'].includes(task.task_type));
+                }
+            }
+
+            const getTaskList = async (filterByType = 'neurobot') => {
                 const res = await API_getTaskList(initData);
                 const tasks = res.tasks
                 taskList.value = [...tasks]
                 sortTaskList()
+                filterTasks(filterByType)
             }
 
             const checkTask = async (task_id) => {
@@ -275,6 +297,23 @@
                     window.Telegram.WebApp.HapticFeedback.notificationOccurred('error')
                 }
                 task.is_checked = true
+
+                task.is_checking = false
+            }
+
+            const sendTaskToManualCheck = async (task_id) => {
+                const task = taskList.value.find(t => t.id === task_id)
+
+                task.is_checking = true
+
+                const res = await API_sendToManualCheck(initData, task_id)
+
+                if (res.success) {
+                    task.is_manual_checked = false
+                    task.is_manual_approved = false
+                    task.has_progress = true
+                    window.Telegram.WebApp.HapticFeedback.notificationOccurred('success')
+                }
 
                 task.is_checking = false
             }
@@ -343,6 +382,9 @@
                 claimDailyReward,
                 taskList,
                 checkTask,
+                getTaskList,
+                selectedTaskType,
+                sendTaskToManualCheck,
                 logs
             }
         }
@@ -355,7 +397,8 @@
         --rose: #EE247A;
         --bg-black: #101217;
         --card-bg-black: #1A1E24;
-        --desc-color: #91a8ad;
+        --desc-color: #b3b9ba;
+        --btn-shadow: 1px 1px 1px rgba(58, 56, 56, 0.7);
     }
 
     body {
@@ -394,7 +437,7 @@
     }
 
     .username {
-        font-size: 18px;
+        font-size: 18pt;
         font-weight: bold;
     }
 
@@ -408,7 +451,7 @@
     .level, .nrc {
         margin-right: 10px;
         font-weight: 600;
-        font-size: 14pt;
+        font-size: 16pt;
     }
 
     .level {
@@ -432,7 +475,7 @@
         border-radius: 10px;
         margin-top: 10px;
         position: relative;
-        border: 1px dashed #30A6C2;
+        border: 1px solid #30A6C2;
     }
 
     .task-item-empty {
@@ -476,8 +519,9 @@
         color: white;
         border: none;
         border-radius: 5px;
-        font-size: 16px;
+        font-size: 14pt;
         cursor: pointer;
+        text-shadow: var(--btn-shadow);
     }
 
     .base-btn:disabled {
@@ -544,7 +588,7 @@
 
     .task__title {
         font-weight: 600;
-        font-size: 13pt;
+        font-size: 14pt;
     }
 
     .task__description {
@@ -562,6 +606,39 @@
         font-weight: bold;
         color: var(--light-blue);
         border-bottom: solid 2px var(--light-blue);
+    }
+
+    .partner-tasks-ad {
+        background-color: rgb(28, 133, 98);
+        color: white;
+        padding: 15px;
+        border-radius: 10px;
+        margin-bottom: 20px;
+        font-weight: bold;
+    }
+
+    .tasks-selector {
+        display: flex;
+        /* background-color: #20242a; */
+        /* border: 1px dashed #30A6C2; */
+        border-radius: 5px;
+        font-size: 14pt;
+        justify-content: space-between;
+        padding: 10px 0;
+    }
+
+    .tasks-selector__item {
+        background-color: var(--card-bg-black);
+        padding: 6px 0;
+        width: 47%;
+        text-align: center;
+        border-radius: 10px;
+        border: 1px solid #30A6C2;
+        text-shadow: var(--btn-shadow);
+    }
+
+    .tasks-selector__item--active {
+        background-color: var(--light-blue);
     }
 
     .command {
