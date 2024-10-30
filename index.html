@@ -57,56 +57,63 @@
                     Партнеры
                 </div>
             </div>
-            <div v-for="task in taskList" class="task-item">
-                <p class="task__title">{{ task.title }}</p>
-                <p class="task__description" v-html="task.description"></p>
-                <p>
-                    Награда: 
-                    <span v-if="task.reward_lvl" class="reward reward--lvl">
-                        {{ `+ ${task.reward_lvl} LVL` }}
-                    </span> 
-                    {{ task.reward_lvl && task.reward_nrc && ' и ' }}
-                    <span v-if="task.reward_nrc" class="reward reward--nrc">
-                        {{ task.reward_nrc && `+ ${task.reward_nrc} NRC` }}
-                    </span>
-                </p>
-                <p v-if="task.is_completed">
-                    <span class="task__completed">Награда получена</span>
-                </p>
-                
-                <template v-if="task.task_check_method === 'manual'">
-                    <button 
-                        v-if="!task.has_progress || (!task.is_completed && ((task.is_manual_checked && !task.is_manual_approved) || (!task.is_manual_checked && task.is_manual_approved)))" 
-                        class="base-btn" 
-                        :class="{'base-btn--loading': task.is_checking}"
-                        @click="sendTaskToManualCheck(task.id)"
-                    >
-                        <span v-if="task.is_checking" class="base-btn__loader"></span>
-                        Отправить на проверку
-                    </button>
-                    <p v-if="task.has_progress && !task.is_completed && !task.is_manual_checked && !task.is_manual_approved" class="task__progress">
-                        Задание находится на ручной проверке. Мы проверим его в течение 72 часов, но скорее всего гораздо быстрее.
+            <template v-if="isTaskListLoading">
+                <div class="container container--loading" style="min-height:300px !important; opacity: 0.1;">
+                    <div class="container__loader"></div>
+                </div>
+            </template>
+            <template v-else>
+                <div v-for="task in taskList" class="task-item">
+                    <p class="task__title">{{ task.title }}</p>
+                    <p class="task__description" v-html="task.description"></p>
+                    <p>
+                        Награда: 
+                        <span v-if="task.reward_lvl" class="reward reward--lvl">
+                            {{ `+ ${task.reward_lvl} LVL` }}
+                        </span> 
+                        {{ task.reward_lvl && task.reward_nrc && ' и ' }}
+                        <span v-if="task.reward_nrc" class="reward reward--nrc">
+                            {{ task.reward_nrc && `+ ${task.reward_nrc} NRC` }}
+                        </span>
                     </p>
-                    <p v-if="task.has_progress && !task.is_completed && task.is_manual_checked && !task.is_manual_approved" class="task__progress">
-                        Задание не зачтено. Исправьте недочеты и отправьте на повторную проверку.
-                        <template v-if="task.comment"><br/><br/><u>Комментарий:</u> {{ task.comment }}</template>
+                    <p v-if="task.is_completed">
+                        <span class="task__completed">Награда получена</span>
                     </p>
-                </template>
-                <template v-else>
-                    <button 
-                        v-if="!task.is_completed" 
-                        class="base-btn" 
-                        :class="{'base-btn--loading': task.is_checking}"
-                        @click="checkTask(task.id)"
-                    >
-                        <span v-if="task.is_checking" class="base-btn__loader"></span>
-                        Проверить
-                    </button>
-                    <p v-if="task.is_checked && !task.is_completed" class="task__progress">
-                        Прогресс: {{ task.current_progress_count && task.required_progress_count ? `${task.current_progress_count} / ${task.required_progress_count}` : `не выполнено`}}
-                    </p>
-                </template>
-            </div>
+                    
+                    <template v-if="task.task_check_method === 'manual'">
+                        <button 
+                            v-if="!task.has_progress || (!task.is_completed && ((task.is_manual_checked && !task.is_manual_approved) || (!task.is_manual_checked && task.is_manual_approved)))" 
+                            class="base-btn" 
+                            :class="{'base-btn--loading': task.is_checking}"
+                            @click="sendTaskToManualCheck(task.id)"
+                        >
+                            <span v-if="task.is_checking" class="base-btn__loader"></span>
+                            Отправить на проверку
+                        </button>
+                        <p v-if="task.has_progress && !task.is_completed && !task.is_manual_checked && !task.is_manual_approved" class="task__progress">
+                            Задание находится на ручной проверке. Мы проверим его в течение 72 часов, но скорее всего гораздо быстрее.
+                        </p>
+                        <p v-if="task.has_progress && !task.is_completed && task.is_manual_checked && !task.is_manual_approved" class="task__progress">
+                            Задание не зачтено. Исправьте недочеты и отправьте на повторную проверку.
+                            <template v-if="task.comment"><br/><br/><u>Комментарий:</u> {{ task.comment }}</template>
+                        </p>
+                    </template>
+                    <template v-else>
+                        <button 
+                            v-if="!task.is_completed" 
+                            class="base-btn" 
+                            :class="{'base-btn--loading': task.is_checking}"
+                            @click="checkTask(task.id)"
+                        >
+                            <span v-if="task.is_checking" class="base-btn__loader"></span>
+                            Проверить
+                        </button>
+                        <p v-if="task.is_checked && !task.is_completed" class="task__progress">
+                            Прогресс: {{ task.current_progress_count && task.required_progress_count ? `${task.current_progress_count} / ${task.required_progress_count}` : `не выполнено`}}
+                        </p>
+                    </template>
+                </div>
+            </template>
         </section>
 
       <!-- <nav class="nav">
@@ -243,6 +250,7 @@
             const taskList = ref([]);
             const logs = ref([]);
             const selectedTaskType = ref('neurobot');
+            const isTaskListLoading = ref(true)
 
             const setUserData = async () => {
               const userData = await API_getAuthUserData(initData);
@@ -274,11 +282,13 @@
             }
 
             const getTaskList = async (filterByType = 'neurobot') => {
+                isTaskListLoading.value = true
                 const res = await API_getTaskList(initData);
                 const tasks = res.tasks
                 taskList.value = [...tasks]
                 sortTaskList()
                 filterTasks(filterByType)
+                isTaskListLoading.value = false
             }
 
             const checkTask = async (task_id) => {
@@ -385,6 +395,7 @@
                 getTaskList,
                 selectedTaskType,
                 sendTaskToManualCheck,
+                isTaskListLoading,
                 logs
             }
         }
@@ -635,6 +646,7 @@
         border-radius: 10px;
         border: 1px solid #30A6C2;
         text-shadow: var(--btn-shadow);
+        cursor: pointer;
     }
 
     .tasks-selector__item--active {
